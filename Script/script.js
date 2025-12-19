@@ -94,19 +94,85 @@ topMenuEl.addEventListener('click', function(event) {
   // Log the content of the <a> to verify the handler is working.
   console.log(event.target.textContent);
   
-  // 1. The event listener should add the active class to the <a> element that was clicked, 
-  // unless it was already active, in which case it should remove it.
-  if (event.target.classList.contains('active')) {
-    event.target.classList.remove('active');
-  } else {
-    event.target.classList.add('active');
-  }
+  // Cache whether the clicked link is currently active
+  const isActive = event.target.classList.contains('active');
   
   // 2. The event listener should remove the active class from each other <a> element in topMenuLinks.
   topMenuLinks.forEach(function(link) {
-    if (link !== event.target) {
-      link.classList.remove('active');
-    }
+    link.classList.remove('active');
   });
+  
+  // 1. The event listener should add the active class to the <a> element that was clicked, 
+  // unless it was already active, in which case it should remove it.
+  if (!isActive) {
+    event.target.classList.add('active');
+  }
+  
+  // Within the event listener, if the clicked element does not yet have a class of "active" (it was inactive when clicked):
+  if (!isActive) {
+    // Find the clicked link's corresponding object in menuLinks array
+    const clickedLink = menuLinks.find(link => link.text === event.target.textContent);
+    
+    // 1. If the clicked <a> element's "link" object within menuLinks has a subLinks property, 
+    // set the CSS top property of subMenuEl to 100%.
+    if (clickedLink && clickedLink.subLinks) {
+      subMenuEl.style.top = '100%';
+      // Build the submenu with the subLinks array
+      buildSubmenu(clickedLink.subLinks);
+    } else {
+      // 2. Otherwise, set the CSS top property of subMenuEl to 0.
+      subMenuEl.style.top = '0';
+      // 5. If the ABOUT link is clicked, an <h1>About</h1> should be displayed.
+      mainEl.innerHTML = '<h1>About</h1>';
+    }
+  } else {
+    // If the link was already active (now deactivated), hide the submenu
+    subMenuEl.style.top = '0';
+  }
 });
-// PART 5: -------------------------------------------------------------------------------------------------------------------------------
+
+// PART 5: ----------------------------------------------
+
+// Helper function to build the submenu
+function buildSubmenu(subLinks) {
+  // 1. Clear the current contents of subMenuEl.
+  subMenuEl.innerHTML = '';
+  
+  // 2. Iterate over the subLinks array, passed as an argument, and for each "link" object:
+  subLinks.forEach(function(link) {
+    // 1. Create an <a> element.
+    const anchor = document.createElement('a');
+    
+    // 2. Add an href attribute to the <a>, with the value set by the href property of the "link" object.
+    anchor.setAttribute('href', link.href);
+    
+    // 3. Set the element's content to the value of the text property of the "link" object.
+    anchor.textContent = link.text;
+    
+    // 4. Append the new element to the subMenuEl.
+    subMenuEl.appendChild(anchor);
+  });
+}
+
+// 1. Attach a delegated 'click' event listener to subMenuEl.
+subMenuEl.addEventListener('click', function(event) {
+  // The first line of code of the event listener function should call the event object's preventDefault() method.
+  event.preventDefault();
+  
+  // The second line of code within the function should immediately return if the element clicked was not an <a> element.
+  if (event.target.tagName !== 'A') return;
+  
+  // Log the content of the <a> to verify the handler is working.
+  console.log(event.target.textContent);
+  
+  // 2. Next, the event listener should set the CSS top property of subMenuEl to 0.
+  subMenuEl.style.top = '0';
+  
+  // 3. Remove the active class from each <a> element in topMenuLinks.
+  topMenuLinks.forEach(function(link) {
+    link.classList.remove('active');
+  });
+  
+  // 4. Update the contents of mainEl, within an <h1>, to the contents of the <a> element clicked within subMenuEl.
+  mainEl.innerHTML = '<h1>' + event.target.textContent + '</h1>';
+});
